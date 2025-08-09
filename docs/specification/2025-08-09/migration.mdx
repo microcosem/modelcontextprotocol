@@ -1,0 +1,114 @@
+---
+title: Migrating to Security-Focused MCP (2025-08-09)
+---
+
+This guide explains how to adopt the security-focused enhancements introduced in the 2025-08-09 schema, while maintaining backward compatibility with earlier MCP versions.
+
+### Goals
+
+- Strong identity on every message
+- Fine‑grained, time‑boxed capability tokens
+- Replay protection and payload integrity
+- Optional message‑level encryption (beyond TLS)
+
+### 1) Negotiate capabilities during initialize
+
+- Ensure clients and servers advertise `security` in `ClientCapabilities`/`ServerCapabilities`.
+- Do not hard‑require security features on day one; start by accepting unsigned messages and progressively tighten policy based on `security` capabilities.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-08-09",
+    "capabilities": {
+      "security": {
+        "requireSignedRequests": false,
+        "supportedSignatureAlgs": ["EdDSA", "ES256"],
+        "acceptCapabilityFormats": ["jwt", "paseto", "object"],
+        "maxReplayWindowSeconds": 300
+      }
+    },
+    "clientInfo": { "name": "my-client", "version": "1.0.0" }
+  }
+}
+```
+
+### 2) Issue short‑lived capabilities
+
+- Use `security/issue` to mint scoped, non‑transferable tokens.
+- Begin by issuing tokens for low‑risk actions, then expand.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "security/issue",
+  "params": {
+    "requested": [
+      {
+        "scope": [
+          {
+            "type": "resource",
+            "actions": ["read"],
+            "uriTemplate": "file://*/README.md"
+          }
+        ],
+        "constraints": { "expiresAt": "2025-08-09T12:05:00Z" },
+        "nonTransferable": true
+      }
+    ],
+    "proof": { "keyId": "kid:client", "alg": "EdDSA", "jws": "<detached-jws>" }
+  }
+}
+```
+
+### 3) Attach `_meta.security` to requests
+
+- Start with `replay` and `integrity`; add `identity` and `capabilities` next; finally enable `encryption`.
+- Roll out per‑method allowlists to reduce blast radius.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "resources/read",
+  "params": {
+    "_meta": {
+      "security": {
+        "replay": { "nonce": "3XbV...", "timestamp": "2025-08-09T12:00:00Z" },
+        "integrity": { "alg": "SHA-256", "hash": "base64-hash" },
+        "capabilities": ["eyJhbGciOiJFZERTQSIs..."],
+        "identity": {
+          "keyId": "kid:client",
+          "alg": "EdDSA",
+          "jws": "<detached-jws>"
+        }
+      }
+    },
+    "uri": "file:///project/README.md"
+  }
+}
+```
+
+### 4) Progressive enforcement
+
+- Phase A: Log & allow unsigned/uncap requests, enforce replay windows.
+- Phase B: Require capabilities for privileged methods; continue soft‑fail on missing signatures.
+- Phase C: Require signatures for all requests; return `UNAUTHORIZED`/`FORBIDDEN` on violations.
+- Phase D: Require encryption for sensitive payloads; reject with `ENCRYPTION_REQUIRED` when absent.
+
+### 5) Backward compatibility
+
+- Keep accepting legacy versions during transition.
+- For mixed fleets, issue dual tokens and accept both JWT and object formats.
+- Use error codes: `4900 UNAUTHORIZED`, `4901 FORBIDDEN`, `4902 REPLAY_DETECTED`, `4903 INVALID_SIGNATURE`, `4906 ENCRYPTION_REQUIRED`.
+
+### 6) Operational guidance
+
+- Audit: propagate `traceId`/`requestId` via `_meta.security.audit`.
+- Key rotation: maintain multiple `keyId`s concurrently; overlap validity windows.
+- Clock skew: allow small grace periods within `maxReplayWindowSeconds`.
+- Rate‑limit: throttle invalid signature and decryption failures.

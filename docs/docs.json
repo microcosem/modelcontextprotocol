@@ -28,6 +28,17 @@
           "docs/getting-started/intro",
           "docs/sdk",
           {
+            "group": "Security",
+            "pages": [
+              "docs/security/index",
+              "docs/security/envelope",
+              "docs/security/capabilities",
+              "docs/security/crypto",
+              "docs/security/errors",
+              "docs/security/rollout"
+            ]
+          },
+          {
             "group": "Concepts",
             "pages": [
               "docs/learn/architecture",
@@ -43,7 +54,8 @@
                 "group": "Using MCP",
                 "pages": [
                   "docs/tutorials/use-remote-mcp-server",
-                  "quickstart/user"
+                  "quickstart/user",
+                  "quickstart/running-mcp-servers"
                 ]
               },
               {
@@ -67,6 +79,14 @@
       {
         "tab": "Specification",
         "versions": [
+          {
+            "version": "Security Preview 2025-08-09",
+            "pages": [
+              "specification/2025-08-09/schema",
+              "specification/2025-08-09/migration",
+              "specification/2025-08-09/examples"
+            ]
+          },
           {
             "version": "Version 2025-06-18 (latest)",
             "pages": [

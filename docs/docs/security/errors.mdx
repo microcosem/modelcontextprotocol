@@ -1,0 +1,16 @@
+---
+title: Security Error Codes
+---
+
+The enhanced schema introduces clear, operational security errors (non-JSON-RPC standard codes):
+
+- 4900 UNAUTHORIZED — missing or invalid identity/capabilities
+- 4901 FORBIDDEN — capability present but does not allow this action
+- 4902 REPLAY_DETECTED — nonce/timestamp outside window or reused
+- 4903 INVALID_SIGNATURE — signature or integrity failure
+- 4904 INVALID_CAPABILITY — malformed token/claims
+- 4905 EXPIRED_CAPABILITY — token expired or not yet valid
+- 4906 ENCRYPTION_REQUIRED — policy requires encryption but absent
+- 4907 DECRYPTION_FAILED — could not decrypt (e.g., wrong key)
+
+Use these for policy enforcement, telemetry, and alerting.

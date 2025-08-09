@@ -15,6 +15,12 @@ compatibility.
 The official MCP documentation is built using Mintlify and available at
 [modelcontextprotocol.io](https://modelcontextprotocol.io).
 
+## Enhanced Security Schema
+
+For a summary of the new security-focused MCP schema with examples and rollout guidance, see
+[ENHANCED_SCHEMA.md](ENHANCED_SCHEMA.md). The corresponding TypeScript schema is at
+[`schema/2025-08-09/schema.ts`](schema/2025-08-09/schema.ts).
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

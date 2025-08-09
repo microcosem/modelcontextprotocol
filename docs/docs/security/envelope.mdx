@@ -1,0 +1,45 @@
+---
+title: Security Envelope (`_meta.security`)
+---
+
+The security envelope attaches to requests, notifications, and results under `_meta.security`.
+
+### Fields
+
+- `identity`: `{ keyId, alg, jws, publicKey?, certificateChain? }`
+  - Cryptographic sender authentication per-message (JWS over a canonical payload)
+- `capabilities`: `(string | CapabilityToken)[]`
+  - Fine-grained, short-lived, non-transferable authorization tokens
+- `replay`: `{ nonce, timestamp }`
+  - Prevents replay attacks within a configured window
+- `integrity`: `{ alg, hash, canonicalization? }`
+  - Tamper detection for the payload
+- `encryption`: `{ alg, keyId?, iv?, aad?, ciphertext, tag? }`
+  - Optional message-level encryption (JWE-like container)
+- `audit`: `{ traceId?, requestId? }`
+  - End-to-end tracing and incident response
+
+### Example
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "resources/read",
+  "params": {
+    "_meta": {
+      "security": {
+        "replay": { "nonce": "3XbV...", "timestamp": "2025-08-09T12:00:00Z" },
+        "integrity": { "alg": "SHA-256", "hash": "base64-hash" },
+        "capabilities": ["eyJhbGciOiJFZERTQSIs..."],
+        "identity": {
+          "keyId": "kid:client",
+          "alg": "EdDSA",
+          "jws": "<detached-jws>"
+        }
+      }
+    },
+    "uri": "file:///project/README.md"
+  }
+}
+```

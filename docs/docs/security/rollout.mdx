@@ -1,0 +1,22 @@
+---
+title: Progressive Security Rollout
+---
+
+A staged adoption strategy minimizes disruption while improving security.
+
+### Phases
+
+1. Negotiate: advertise `security` capabilities during `initialize`.
+2. Verify: enforce `replay` and `integrity` (log failures), continue to allow requests.
+3. Capabilities: require tokens for privileged methods; soft-fail on missing signatures.
+4. Signatures: require identity on all requests/responses.
+5. Encryption: require message-level encryption for sensitive methods/parameters.
+
+### Validation checklist
+
+- Replay: `timestamp` within `maxReplayWindowSeconds`, `nonce` unique per `keyId`.
+- Integrity: recompute canonical payload hash; return 4903 on mismatch.
+- Identity: verify `identity.jws` and `keyId`/PKI; apply revocation/rotation.
+- Capabilities: validate scope/constraints; return 4901/4905/4904 as appropriate.
+- Encryption: if required, enforce presence and decrypt; return 4906/4907 on violations.
+- Audit: propagate and log `traceId`/`requestId`.

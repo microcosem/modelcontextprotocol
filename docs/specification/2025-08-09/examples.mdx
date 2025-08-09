@@ -1,0 +1,105 @@
+---
+title: Secure MCP Examples (2025-08-09)
+---
+
+This page provides end‑to‑end examples for `_meta.security`, capability issuance, and message‑level encryption.
+
+### Signed request with capabilities and replay protection
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": {
+    "_meta": {
+      "security": {
+        "replay": {
+          "nonce": "jW9Qf7oC0fE=",
+          "timestamp": "2025-08-09T12:00:00Z"
+        },
+        "integrity": { "alg": "SHA-256", "hash": "pZr2a5kq...=" },
+        "capabilities": ["eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...."],
+        "identity": {
+          "keyId": "kid:client",
+          "alg": "EdDSA",
+          "jws": "eyJhbGciOiJFZERTQSJ9..signature"
+        },
+        "audit": { "traceId": "trace-123", "requestId": "req-abc" }
+      }
+    },
+    "name": "search_web",
+    "arguments": { "query": "mcp security" }
+  }
+}
+```
+
+### Capability issuance (`security/issue`)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "security/issue",
+  "params": {
+    "requested": [
+      {
+        "scope": [
+          { "type": "tool", "actions": ["call"], "name": "search_web" }
+        ],
+        "constraints": {
+          "expiresAt": "2025-08-09T12:10:00Z",
+          "audience": "urn:mcp:server:tools"
+        },
+        "nonTransferable": true
+      }
+    ],
+    "proof": { "keyId": "kid:client", "alg": "EdDSA", "jws": "<detached-jws>" }
+  }
+}
+```
+
+### Encrypted params (_message‑level encryption_)
+
+When `encryption` is present, `params` MAY contain only `_meta.security.encryption` and the receiver decrypts to recover the original parameters.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "resources/read",
+  "params": {
+    "_meta": {
+      "security": {
+        "replay": { "nonce": "v2t4...", "timestamp": "2025-08-09T12:02:00Z" },
+        "encryption": {
+          "alg": "A256GCM",
+          "keyId": "kid:server",
+          "iv": "Q2hhbmdlbWU=",
+          "aad": "eyJqd3QiOnRydWV9",
+          "ciphertext": "X1c+...",
+          "tag": "bG9naW4="
+        }
+      }
+    }
+  }
+}
+```
+
+### Security‑aware error responses
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "error": { "code": 4902, "message": "Replay window exceeded" }
+}
+```
+
+### Validation checklist
+
+- Verify `timestamp` within replay window; ensure `nonce` uniqueness per sender key.
+- Verify `integrity.hash` against canonical payload; reject on mismatch (4903).
+- Verify JWS signature and `keyId`; apply revocation/rotation policy.
+- Validate capability scopes/constraints; reject unauthorized (4901) or expired (4905).
+- If `encryption` is required, reject unencrypted (4906); on failure to decrypt, return (4907).

@@ -1,0 +1,43 @@
+---
+title: Message-Level Cryptography
+---
+
+### Identity (signatures)
+
+- Carried in `_meta.security.identity`: `{ keyId, alg, jws, publicKey?, certificateChain? }`
+- Use detached JWS over a canonical envelope; advertise algorithms in `supportedSignatureAlgs`.
+
+### Integrity (hashing)
+
+- `_meta.security.integrity`: `{ alg, hash, canonicalization? }`
+- Hash the canonical payload (or plaintext when using encryption) and verify on receipt.
+
+### Encryption (JWE-like)
+
+- `_meta.security.encryption`: `{ alg, keyId?, iv?, aad?, ciphertext, tag? }`
+- When present, `params` MAY omit plaintext fields; receiver decrypts to recover them.
+
+#### Example
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "resources/read",
+  "params": {
+    "_meta": {
+      "security": {
+        "replay": { "nonce": "v2t4...", "timestamp": "2025-08-09T12:02:00Z" },
+        "encryption": {
+          "alg": "A256GCM",
+          "keyId": "kid:server",
+          "iv": "Q2hhbmdlbWU=",
+          "aad": "eyJqd3QiOnRydWV9",
+          "ciphertext": "X1c+...",
+          "tag": "bG9naW4="
+        }
+      }
+    }
+  }
+}
+```
