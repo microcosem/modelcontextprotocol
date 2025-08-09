@@ -1,0 +1,29 @@
+---
+title: MCP Enhanced Security Overview
+---
+
+This section documents the enhanced, security-focused MCP schema introduced in `schema/2025-08-09/schema.ts`.
+
+### What’s new
+
+- Message-scoped security envelope via `_meta.security`
+- Capability-based authorization with fine-grained scopes
+- Message-level cryptography (identity signatures, integrity hashes, optional encryption)
+- Security feature negotiation during `initialize`
+- Dedicated security error codes (4900–4907)
+- Capability issuance RPC: `security/issue`
+
+### Start here
+
+- Read the high-level summary: `ENHANCED_SCHEMA.md`
+- Deep dives:
+  - `Security Envelope` (how to attach identity, capabilities, replay, integrity, encryption)
+  - `Capabilities` (scope/constraints and the `security/issue` RPC)
+  - `Cryptography` (signatures, hashing, encryption container)
+  - `Errors` (security-aware error codes)
+  - `Rollout` (progressive hardening strategy)
+
+### Spec cross-references
+
+- TypeScript: `schema/2025-08-09/schema.ts`
+- Docs pages: `specification/2025-08-09/*`

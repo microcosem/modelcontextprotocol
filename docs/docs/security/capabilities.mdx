@@ -1,0 +1,47 @@
+---
+title: Capability-Based Authorization
+---
+
+Capabilities provide fine-grained, time-bounded authorization per request.
+
+### Model
+
+- `CapabilityToken`: either a compact `token` (JWT, PASETO, CWT) or a structured `claims` object
+- `CapabilityClaims`:
+  - `scope`: array of entries for resources, tools, and prompts
+    - `resource`: `{ type: "resource", actions: ["read"|"subscribe"|"unsubscribe"|"list"|"templates_list"], uri?, uriTemplate? }`
+    - `tool`: `{ type: "tool", actions: ["call"|"list"], name?, namePattern? }`
+    - `prompt`: `{ type: "prompt", actions: ["get"|"list"], name?, namePattern? }`
+  - `constraints`: `{ notBefore?, expiresAt?, audience?, issuer?, subject?, context? }`
+  - `nonTransferable`: boolean
+
+### Issuance RPC: `security/issue`
+
+Servers validate identity proof and policy, then issue scoped, short-lived capabilities.
+
+Request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "security/issue",
+  "params": {
+    "requested": [
+      {
+        "scope": [
+          {
+            "type": "resource",
+            "actions": ["read"],
+            "uriTemplate": "file://*/README.md"
+          }
+        ],
+        "constraints": { "expiresAt": "2025-08-09T12:05:00Z" },
+        "nonTransferable": true
+      }
+    ],
+    "proof": { "keyId": "kid:client", "alg": "EdDSA", "jws": "<detached-jws>" },
+    "audience": "urn:mcp:server"
+  }
+}
+```

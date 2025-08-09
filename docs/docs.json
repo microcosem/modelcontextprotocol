@@ -28,6 +28,17 @@
           "docs/getting-started/intro",
           "docs/sdk",
           {
+            "group": "Security",
+            "pages": [
+              "docs/security/index",
+              "docs/security/envelope",
+              "docs/security/capabilities",
+              "docs/security/crypto",
+              "docs/security/errors",
+              "docs/security/rollout"
+            ]
+          },
+          {
             "group": "Concepts",
             "pages": [
               "docs/learn/architecture",
